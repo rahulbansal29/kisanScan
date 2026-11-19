@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KisanScan – Crop Doctor</title>
+<style>
+  :root{--g:#1f7a3a;--g2:#e8f5ec;--ink:#1d2a22;--mut:#5d6b62;--line:#d9e4dc;--red:#c0392b;--amb:#c77d0a;--bg:#f6f8f6;--card:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Devanagari",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  header{background:var(--g);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:5}
+  header h1{margin:0;font-size:1.3rem}
+  header small{display:block;opacity:.85;font-weight:400;font-size:.8rem}
+  .lang{display:flex;border:1px solid #fff8;border-radius:999px;overflow:hidden}
+  .lang button{background:none;border:0;color:#fff;padding:6px 12px;font:inherit;cursor:pointer}
+  .lang button.on{background:#fff;color:var(--g);font-weight:600}
+  main{max-width:720px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+  h2{margin:0 0 10px;font-size:1.1rem}
+  .drop{display:block;border:2px dashed #9cc7a9;border-radius:12px;padding:22px;text-align:center;cursor:pointer;background:var(--g2)}
+  .drop img{max-width:100%;max-height:280px;border-radius:8px;display:block;margin:0 auto}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--g);color:#fff;border:0;border-radius:10px;padding:12px 18px;font:inherit;font-weight:600;cursor:pointer;width:100%;margin-top:12px}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.ghost{background:#fff;color:var(--g);border:1.5px solid var(--g);width:auto;margin:0}
+  .res-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .crop{color:var(--mut);font-size:.9rem}
+  .dname{font-size:1.35rem;font-weight:700;margin:2px 0}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.8rem;font-weight:600}
+  .sev-high{background:#fde8e6;color:var(--red)} .sev-medium{background:#fdf1dc;color:var(--amb)} .sev-none{background:var(--g2);color:var(--g)}
+  .bar{height:10px;background:#e5ece7;border-radius:99px;overflow:hidden;margin:8px 0 2px}
+  .bar i{display:block;height:100%;background:var(--g)}
+  .warn{background:#fff6e0;border:1px solid #f0d08a;padding:10px 12px;border-radius:10px;margin:10px 0;font-size:.92rem}
+  ul{margin:6px 0 12px;padding-left:20px} li{margin:3px 0}
+  h3{font-size:.95rem;margin:14px 0 4px;color:var(--g)}
+  .note{font-size:.8rem;color:var(--mut)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+  .stat{background:var(--g2);border-radius:10px;padding:10px;text-align:center}
+  .stat b{display:block;font-size:1.4rem;color:var(--g)}
+  .stat span{font-size:.78rem;color:var(--mut)}
+  table{width:100%;border-collapse:collapse;font-size:.85rem}
+  td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+  .samples{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .samples button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;font:inherit;font-size:.8rem;cursor:pointer;color:var(--ink)}
+  .hidden{display:none}
+  .spin{width:18px;height:18px;border:3px solid #fff6;border-top-color:#fff;border-radius:50%;animation:s 1s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌿 KisanScan <small data-t="tag"></small></h1>
+  <div class="lang"><button id="lenBtn" class="on">EN</button><button id="lhiBtn">हिंदी</button></div>
+</header>
+<main>
+  <section class="card">
+    <h2 data-t="step1"></h2>
+    <label class="drop" id="drop">
+      <input id="file" type="file" accept="image/*" capture="environment" hidden>
+      <div id="dropText"><div style="font-size:2.2rem">📷</div><b data-t="upload"></b><div class="note" data-t="uploadHint"></div></div>
+      <img id="preview" class="hidden" alt="Leaf photo preview">
+    </label>
+    <div class="samples"><span class="note" data-t="samples"></span> <span id="sampleList"></span></div>
+    <button class="btn" id="scanBtn" disabled><span data-t="scan"></span></button>
+  </section>
+
+  <section class="card hidden" id="resultCard">
+    <div class="res-head">
+      <div>
+        <div class="crop" id="rCrop"></div>
+        <div class="dname" id="rName"></div>
+        <span class="badge" id="rSev"></span>
+      </div>
+      <button class="btn ghost" id="speakBtn">🔊 <span data-t="listen"></span></button>
+    </div>
+    <div class="bar"><i id="rBar"></i></div>
+    <div class="note"><span data-t="confidence"></span>: <b id="rConf"></b></div>
+    <div class="warn hidden" id="rWarn"></div>
+    <h3 data-t="cause"></h3><div id="rCause"></div>
+    <h3 data-t="treat"></h3><ul id="rTreat"></ul>
+    <h3 data-t="prevent"></h3><ul id="rPrev"></ul>
+    <div class="note" id="rAlt"></div>
+    <p class="note" data-t="disclaimer"></p>
+  </section>
+
+  <section class="card">
+    <h2 data-t="dash"></h2>
+    <div class="stats">
+      <div class="stat"><b id="sTotal">0</b><span data-t="sTotal"></span></div>
+      <div class="stat"><b id="sSick">0</b><span data-t="sSick"></span></div>
+      <div class="stat"><b id="sTop">–</b><span data-t="sTop"></span></div>
+    </div>
+    <table><thead><tr><th data-t="hTime"></th><th data-t="hCrop"></th><th data-t="hResult"></th><th>%</th></tr></thead><tbody id="hist"></tbody></table>
+  </section>
+</main>
+<script>
+const T={
+ en:{tag:"AI crop doctor for farmers",step1:"1. Take or upload a photo of one leaf",upload:"Tap to take photo / choose image",uploadHint:"Clear, close-up photo of a single leaf in daylight works best",samples:"Or try a sample leaf:",scan:"Check my crop",scanning:"Checking...",listen:"Listen",confidence:"AI confidence",cause:"What is it?",treat:"What to do now",prevent:"How to prevent it",alt:"Other possibilities",disclaimer:"Doses are typical label rates. Read the product label and confirm with your local KVK / agriculture officer before spraying.",dash:"2. Scan history & disease alerts",sTotal:"Total scans",sSick:"Diseased",sTop:"Most common",hTime:"Time",hCrop:"Crop",hResult:"Result",low:"⚠️ The AI is not sure. Please retake the photo: one leaf, close-up, good light, plain background.",sev:{high:"High risk – act today",medium:"Medium risk",none:"Healthy"},healthy:"Healthy",notLeaf:"🌿 This does not look like a plant leaf. Please take a close-up photo of one leaf.",err:"Something went wrong. Please try again."},
+ hi:{tag:"किसानों के लिए AI फसल डॉक्टर",step1:"1. एक पत्ती की फोटो लें या अपलोड करें",upload:"फोटो लेने / चुनने के लिए दबाएँ",uploadHint:"दिन की रोशनी में एक पत्ती की साफ़, पास से फोटो सबसे अच्छी रहती है",samples:"या नमूना पत्ती आज़माएँ:",scan:"मेरी फसल जाँचें",scanning:"जाँच हो रही है...",listen:"सुनें",confidence:"AI का भरोसा",cause:"यह क्या है?",treat:"अभी क्या करें",prevent:"बचाव कैसे करें",alt:"अन्य संभावनाएँ",disclaimer:"मात्रा सामान्य लेबल दर है। छिड़काव से पहले उत्पाद का लेबल पढ़ें और अपने KVK / कृषि अधिकारी से पुष्टि करें।",dash:"2. जाँच इतिहास और रोग चेतावनी",sTotal:"कुल जाँच",sSick:"रोगग्रस्त",sTop:"सबसे आम रोग",hTime:"समय",hCrop:"फसल",hResult:"परिणाम",low:"⚠️ AI को पक्का भरोसा नहीं है। कृपया फिर से फोटो लें: एक पत्ती, पास से, अच्छी रोशनी, सादा पृष्ठभूमि।",sev:{high:"अधिक खतरा – आज ही उपाय करें",medium:"मध्यम खतरा",none:"स्वस्थ"},healthy:"स्वस्थ",notLeaf:"🌿 यह पौधे की पत्ती नहीं लग रही। कृपया एक पत्ती की पास से फोटो लें।",err:"कुछ गलत हुआ। कृपया दोबारा प्रयास करें।"}
+};
+let lang=localStorageGet()||"en", last=null, file=null;
+function localStorageGet(){try{return localStorage.getItem("ks_lang")}catch(e){return null}}
+const $=id=>document.getElementById(id);
+
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-t]").forEach(el=>el.textContent=T[lang][el.dataset.t]);
+  $("lenBtn").classList.toggle("on",lang==="en"); $("lhiBtn").classList.toggle("on",lang==="hi");
+  try{localStorage.setItem("ks_lang",lang)}catch(e){}
+  if(last) render(last);
+}
+$("lenBtn").onclick=()=>{lang="en";applyLang()};
+$("lhiBtn").onclick=()=>{lang="hi";applyLang()};
+
+$("file").onchange=e=>setFile(e.target.files[0]);
+function setFile(f){
+  file=f; if(!file) return;
+  $("preview").src=URL.createObjectURL(file);
+  $("preview").classList.remove("hidden"); $("dropText").classList.add("hidden");
+  $("scanBtn").disabled=false;
+}
+async function loadSamples(){
+  try{
+    const names=await (await fetch("/api/samples")).json();
+    $("sampleList").innerHTML="";
+    names.forEach(n=>{
+      const b=document.createElement("button");
+      b.textContent=n.replace(/\.jpg$/,"").replace(/_/g," ").replace(/^(\w+) \1 /,"$1 ");
+      b.onclick=async()=>{const r=await fetch("/samples/"+encodeURIComponent(n));setFile(new File([await r.blob()],n,{type:"image/jpeg"}));};
+      $("sampleList").appendChild(b);
+    });
+  }catch(e){}
+}
+
+$("scanBtn").onclick=async()=>{
+  if(!file) return;
+  const b=$("scanBtn"); b.disabled=true; b.innerHTML=`<i class="spin"></i>${T[lang].scanning}`;
+  try{
+    const fd=new FormData(); fd.append("image",file);
+    const r=await fetch("/api/predict",{method:"POST",body:fd});
+    const j=await r.json();
+    if(!r.ok) throw new Error(j.error||T[lang].err);
+    if(j.not_leaf) throw new Error(T[lang].notLeaf);
+    last=j; render(j); loadHistory();
+    $("resultCard").scrollIntoView({behavior:"smooth"});
+  }catch(e){alert(e.message||T[lang].err)}
+  b.disabled=false; b.innerHTML=`<span data-t="scan">${T[lang].scan}</span>`;
+};
+
+function render(j){
+  const r=j.result, hi=lang==="hi";
+  $("resultCard").classList.remove("hidden");
+  $("rCrop").textContent=hi?r.crop_hi:r.crop;
+  $("rName").textContent=hi?r.name_hi:r.name_en;
+  $("rSev").className="badge sev-"+r.severity; $("rSev").textContent=T[lang].sev[r.severity];
+  $("rBar").style.width=r.confidence+"%"; $("rConf").textContent=r.confidence+"%";
+  $("rWarn").classList.toggle("hidden",!j.low_confidence); $("rWarn").textContent=T[lang].low;
+  $("rCause").textContent=hi?r.cause_hi:r.cause_en;
+  $("rTreat").innerHTML=(hi?r.treat_hi:r.treat_en).map(x=>`<li>${x}</li>`).join("");
+  $("rPrev").innerHTML=(hi?r.prevent_hi:r.prevent_en).map(x=>`<li>${x}</li>`).join("");
+  $("rAlt").textContent=T[lang].alt+": "+j.alternatives.map(a=>`${hi?a.name_hi:a.name_en} (${a.confidence}%)`).join(", ");
+}
+
+$("speakBtn").onclick=()=>{
+  if(!last||!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const voices=speechSynthesis.getVoices(), r=last.result;
+  const hiVoice=voices.find(v=>v.lang.replace("_","-").toLowerCase().startsWith("hi"));
+  const hi=lang==="hi"&&!!hiVoice;
+  if(lang==="hi"&&!hiVoice) $("rWarn").classList.remove("hidden"), $("rWarn").textContent="🔊 इस ब्राउज़र में हिंदी आवाज़ नहीं है, अंग्रेज़ी में सुना रहे हैं। (Use Chrome/Edge for a Hindi voice.)";
+  const text=[hi?r.name_hi:r.name_en, hi?r.cause_hi:r.cause_en, hi?T.hi.treat:T.en.treat, ...(hi?r.treat_hi:r.treat_en)].join(". ");
+  const u=new SpeechSynthesisUtterance(text); u.lang=hi?"hi-IN":"en-IN"; u.rate=.95;
+  const v=hi?hiVoice:(voices.find(v=>v.lang.replace("_","-")==="en-IN")||voices.find(v=>v.lang.startsWith("en")));
+  if(v) u.voice=v;
+  speechSynthesis.speak(u);
+};
+
+async function loadHistory(){
+  try{
+    const j=await (await fetch("/api/history")).json();
+    $("sTotal").textContent=j.total; $("sSick").textContent=j.diseased;
+    $("sTop").textContent=j.top_diseases[0]?j.top_diseases[0].disease:"–";
+    $("sTop").style.fontSize=j.top_diseases[0]?".85rem":"";
+    $("hist").innerHTML=j.scans.map(s=>`<tr><td>${s.ts.slice(5,16).replace("T"," ")}</td><td>${s.crop}</td><td>${s.healthy?"✅ "+T[lang].healthy:"🦠 "+s.disease}</td><td>${s.confidence}</td></tr>`).join("");
+  }catch(e){}
+}
+applyLang(); loadHistory(); loadSamples().then(async()=>{
+  // ?sample=Tomato_Late_blight.jpg loads a sample and scans it (demo backup link)
+  const s=new URLSearchParams(location.search).get("sample"); if(!s) return;
+  const r=await fetch("/samples/"+encodeURIComponent(s)); if(!r.ok) return;
+  setFile(new File([await r.blob()],s,{type:"image/jpeg"})); $("scanBtn").click();
+});
+</script>
+</body>
+</html>
