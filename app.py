@@ -13,11 +13,12 @@ from flask import Flask, jsonify, render_template, request, send_from_directory
 from PIL import Image, UnidentifiedImageError
 from transformers import AutoModelForImageClassification, MobileNetV2ImageProcessor
 
-from diseases import DISEASES
+from diseases import CROPS, DISEASES
 
 MODEL_ID = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
 LOW_CONFIDENCE = 0.50  # below this we ask the farmer to retake the photo
 MIN_LEAF_SHARE = 0.08  # real leaf photos score 0.2-0.6; noise / non-plant photos ~0
+MIN_CROP_SHARE = 0.10  # chosen crop gets <0.06 on wrong-crop samples, >0.8 on right ones; below this, ask to check the crop
 DB_PATH = Path(__file__).with_name("scans.db")
 
 app = Flask(__name__)
@@ -44,17 +45,25 @@ def leaf_share(image: Image.Image) -> float:
     return float(((h >= 20) & (h <= 170) & (s > 0.18) & (v > 0.15)).mean())
 
 
-def predict(image: Image.Image):
+def predict(image: Image.Image, crop: str | None = None):
+    """Top-3 (class_id, prob). With a crop chosen by the farmer, only that crop's classes are
+    considered; also returns how much of the model's belief fell on that crop (crop_share)."""
     inputs = processor(images=image.convert("RGB"), return_tensors="pt")
     with torch.no_grad():
         probs = model(**inputs).logits.softmax(-1)[0]
-    top = torch.topk(probs, 3)
-    return [(int(i), float(p)) for p, i in zip(top.values, top.indices)]
+    crop_share = 1.0
+    if crop:
+        mask = torch.tensor([DISEASES[i]["crop"] == crop for i in range(len(probs))])
+        crop_share = float(probs[mask].sum())
+        probs = torch.where(mask, probs, torch.zeros_like(probs)) / max(crop_share, 1e-9)
+    k = min(3, int((probs > 0).sum()))
+    top = torch.topk(probs, k)
+    return [(int(i), float(p)) for p, i in zip(top.values, top.indices)], crop_share
 
 
 @app.get("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", crops=CROPS)
 
 
 SAMPLES_DIR = Path(__file__).with_name("sample_leaves")
@@ -80,10 +89,22 @@ def api_predict():
     except UnidentifiedImageError:
         return jsonify(error="That file is not an image. Please upload a JPG or PNG photo."), 400
 
+    crop = request.form.get("crop") or None
+    if crop == "other":
+        return jsonify(unsupported=True, crops=[{"en": c, "hi": h} for c, h in CROPS.items()])
+    if crop and crop not in CROPS:
+        return jsonify(error="Unknown crop"), 400
+
     if leaf_share(image) < MIN_LEAF_SHARE:
         return jsonify(not_leaf=True)
 
-    top3 = predict(image)
+    top3, crop_share = predict(image, crop)
+    if crop and crop_share < MIN_CROP_SHARE:
+        # The photo does not look like the crop the farmer chose (often a crop we don't support yet).
+        guess, _ = predict(image)
+        g = DISEASES[guess[0][0]]
+        return jsonify(wrong_crop=True, crop=crop, crop_hi=CROPS[crop],
+                       looks_like=g["crop"], looks_like_hi=g["crop_hi"])
     best_id, best_p = top3[0]
     info = DISEASES[best_id]
 

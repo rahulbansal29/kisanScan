@@ -41,6 +41,9 @@
   td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
   .samples{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
   .samples button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;font:inherit;font-size:.8rem;cursor:pointer;color:var(--ink)}
+  .field{display:block;margin-bottom:14px}
+  .field b{display:block;margin-bottom:6px}
+  .field select{width:100%;padding:11px 12px;border:1.5px solid #9cc7a9;border-radius:10px;font:inherit;background:#fff;color:var(--ink)}
   .hidden{display:none}
   .spin{width:18px;height:18px;border:3px solid #fff6;border-top-color:#fff;border-radius:50%;animation:s 1s linear infinite}
   @keyframes s{to{transform:rotate(360deg)}}
@@ -53,6 +56,13 @@
 </header>
 <main>
   <section class="card">
+    <label class="field"><b data-t="cropQ"></b>
+      <select id="crop">
+        <option value="" data-t="cropPick"></option>
+        {% for en, hi in crops.items() %}<option value="{{ en }}" data-en="{{ en }}" data-hi="{{ hi }}">{{ en }}</option>
+        {% endfor %}<option value="other" data-t="cropOther"></option>
+      </select>
+    </label>
     <h2 data-t="step1"></h2>
     <label class="drop" id="drop">
       <input id="file" type="file" accept="image/*" capture="environment" hidden>
@@ -61,6 +71,7 @@
     </label>
     <div class="samples"><span class="note" data-t="samples"></span> <span id="sampleList"></span></div>
     <button class="btn" id="scanBtn" disabled><span data-t="scan"></span></button>
+    <div class="warn hidden" id="msg"></div>
   </section>
 
   <section class="card hidden" id="resultCard">
@@ -94,8 +105,8 @@
 </main>
 <script>
 const T={
- en:{tag:"AI crop doctor for farmers",step1:"1. Take or upload a photo of one leaf",upload:"Tap to take photo / choose image",uploadHint:"Clear, close-up photo of a single leaf in daylight works best",samples:"Or try a sample leaf:",scan:"Check my crop",scanning:"Checking...",listen:"Listen",confidence:"AI confidence",cause:"What is it?",treat:"What to do now",prevent:"How to prevent it",alt:"Other possibilities",disclaimer:"Doses are typical label rates. Read the product label and confirm with your local KVK / agriculture officer before spraying.",dash:"2. Scan history & disease alerts",sTotal:"Total scans",sSick:"Diseased",sTop:"Most common",hTime:"Time",hCrop:"Crop",hResult:"Result",low:"⚠️ The AI is not sure. Please retake the photo: one leaf, close-up, good light, plain background.",sev:{high:"High risk – act today",medium:"Medium risk",none:"Healthy"},healthy:"Healthy",notLeaf:"🌿 This does not look like a plant leaf. Please take a close-up photo of one leaf.",err:"Something went wrong. Please try again."},
- hi:{tag:"किसानों के लिए AI फसल डॉक्टर",step1:"1. एक पत्ती की फोटो लें या अपलोड करें",upload:"फोटो लेने / चुनने के लिए दबाएँ",uploadHint:"दिन की रोशनी में एक पत्ती की साफ़, पास से फोटो सबसे अच्छी रहती है",samples:"या नमूना पत्ती आज़माएँ:",scan:"मेरी फसल जाँचें",scanning:"जाँच हो रही है...",listen:"सुनें",confidence:"AI का भरोसा",cause:"यह क्या है?",treat:"अभी क्या करें",prevent:"बचाव कैसे करें",alt:"अन्य संभावनाएँ",disclaimer:"मात्रा सामान्य लेबल दर है। छिड़काव से पहले उत्पाद का लेबल पढ़ें और अपने KVK / कृषि अधिकारी से पुष्टि करें।",dash:"2. जाँच इतिहास और रोग चेतावनी",sTotal:"कुल जाँच",sSick:"रोगग्रस्त",sTop:"सबसे आम रोग",hTime:"समय",hCrop:"फसल",hResult:"परिणाम",low:"⚠️ AI को पक्का भरोसा नहीं है। कृपया फिर से फोटो लें: एक पत्ती, पास से, अच्छी रोशनी, सादा पृष्ठभूमि।",sev:{high:"अधिक खतरा – आज ही उपाय करें",medium:"मध्यम खतरा",none:"स्वस्थ"},healthy:"स्वस्थ",notLeaf:"🌿 यह पौधे की पत्ती नहीं लग रही। कृपया एक पत्ती की पास से फोटो लें।",err:"कुछ गलत हुआ। कृपया दोबारा प्रयास करें।"}
+ en:{tag:"AI crop doctor for farmers",step1:"1. Take or upload a photo of one leaf",upload:"Tap to take photo / choose image",uploadHint:"Clear, close-up photo of a single leaf in daylight works best",samples:"Or try a sample leaf:",scan:"Check my crop",scanning:"Checking...",listen:"Listen",confidence:"AI confidence",cause:"What is it?",treat:"What to do now",prevent:"How to prevent it",alt:"Other possibilities",disclaimer:"Doses are typical label rates. Read the product label and confirm with your local KVK / agriculture officer before spraying.",dash:"2. Scan history & disease alerts",sTotal:"Total scans",sSick:"Diseased",sTop:"Most common",hTime:"Time",hCrop:"Crop",hResult:"Result",low:"⚠️ The AI is not sure. Please retake the photo: one leaf, close-up, good light, plain background.",sev:{high:"High risk – act today",medium:"Medium risk",none:"Healthy"},healthy:"Healthy",notLeaf:"🌿 This does not look like a plant leaf. Please take a close-up photo of one leaf.",err:"Something went wrong. Please try again.",cropQ:"Which crop is this?",cropPick:"– Select your crop –",cropOther:"Other crop (not in this list)",needCrop:"Please select your crop first.",unsupported:c=>"🙏 Sorry, KisanScan cannot check this crop yet. It currently supports: "+c+". More crops (wheat, rice, cotton) are coming.",wrongCrop:(c,g)=>"🤔 This photo does not look like a "+c+" leaf (it looks more like "+g+"). Please check the crop you selected, or retake the photo of one "+c+" leaf. If your plant is not in the list, choose “Other crop”."},
+ hi:{tag:"किसानों के लिए AI फसल डॉक्टर",step1:"1. एक पत्ती की फोटो लें या अपलोड करें",upload:"फोटो लेने / चुनने के लिए दबाएँ",uploadHint:"दिन की रोशनी में एक पत्ती की साफ़, पास से फोटो सबसे अच्छी रहती है",samples:"या नमूना पत्ती आज़माएँ:",scan:"मेरी फसल जाँचें",scanning:"जाँच हो रही है...",listen:"सुनें",confidence:"AI का भरोसा",cause:"यह क्या है?",treat:"अभी क्या करें",prevent:"बचाव कैसे करें",alt:"अन्य संभावनाएँ",disclaimer:"मात्रा सामान्य लेबल दर है। छिड़काव से पहले उत्पाद का लेबल पढ़ें और अपने KVK / कृषि अधिकारी से पुष्टि करें।",dash:"2. जाँच इतिहास और रोग चेतावनी",sTotal:"कुल जाँच",sSick:"रोगग्रस्त",sTop:"सबसे आम रोग",hTime:"समय",hCrop:"फसल",hResult:"परिणाम",low:"⚠️ AI को पक्का भरोसा नहीं है। कृपया फिर से फोटो लें: एक पत्ती, पास से, अच्छी रोशनी, सादा पृष्ठभूमि।",sev:{high:"अधिक खतरा – आज ही उपाय करें",medium:"मध्यम खतरा",none:"स्वस्थ"},healthy:"स्वस्थ",notLeaf:"🌿 यह पौधे की पत्ती नहीं लग रही। कृपया एक पत्ती की पास से फोटो लें।",err:"कुछ गलत हुआ। कृपया दोबारा प्रयास करें।",cropQ:"यह कौन सी फसल है?",cropPick:"– अपनी फसल चुनें –",cropOther:"अन्य फसल (सूची में नहीं)",needCrop:"कृपया पहले अपनी फसल चुनें।",unsupported:c=>"🙏 माफ़ कीजिए, KisanScan अभी इस फसल की जाँच नहीं कर सकता। अभी ये फसलें शामिल हैं: "+c+"। गेहूँ, धान और कपास जल्द आ रहे हैं।",wrongCrop:(c,g)=>"🤔 यह फोटो "+c+" की पत्ती जैसी नहीं लग रही (यह "+g+" जैसी लग रही है)। कृपया चुनी गई फसल जाँचें, या "+c+" की एक पत्ती की फिर से फोटो लें। अगर आपकी फसल सूची में नहीं है, तो “अन्य फसल” चुनें।"}
 };
 let lang=localStorageGet()||"en", last=null, file=null;
 function localStorageGet(){try{return localStorage.getItem("ks_lang")}catch(e){return null}}
@@ -104,6 +115,7 @@ const $=id=>document.getElementById(id);
 function applyLang(){
   document.documentElement.lang=lang;
   document.querySelectorAll("[data-t]").forEach(el=>el.textContent=T[lang][el.dataset.t]);
+  document.querySelectorAll("#crop option[data-en]").forEach(o=>o.textContent=lang==="hi"?`${o.dataset.hi} (${o.dataset.en})`:o.dataset.en);
   $("lenBtn").classList.toggle("on",lang==="en"); $("lhiBtn").classList.toggle("on",lang==="hi");
   try{localStorage.setItem("ks_lang",lang)}catch(e){}
   if(last) render(last);
@@ -116,8 +128,14 @@ function setFile(f){
   file=f; if(!file) return;
   $("preview").src=URL.createObjectURL(file);
   $("preview").classList.remove("hidden"); $("dropText").classList.add("hidden");
-  $("scanBtn").disabled=false;
+  $("scanBtn").disabled=false; showMsg("");
 }
+function showMsg(t){$("msg").textContent=t; $("msg").classList.toggle("hidden",!t);}
+$("crop").onchange=()=>showMsg("");
+// sample file names start with the crop, e.g. Corn_maize_Common_rust.jpg -> "Corn (Maize)"
+function cropFromName(n){const w=n.split("_")[0].toLowerCase();
+  const o=[...document.querySelectorAll("#crop option[data-en]")].find(o=>o.value.toLowerCase().split(" ")[0]===w);
+  return o?o.value:"";}
 async function loadSamples(){
   try{
     const names=await (await fetch("/api/samples")).json();
@@ -125,7 +143,7 @@ async function loadSamples(){
     names.forEach(n=>{
       const b=document.createElement("button");
       b.textContent=n.replace(/\.jpg$/,"").replace(/_/g," ").replace(/^(\w+) \1 /,"$1 ");
-      b.onclick=async()=>{const r=await fetch("/samples/"+encodeURIComponent(n));setFile(new File([await r.blob()],n,{type:"image/jpeg"}));};
+      b.onclick=async()=>{const r=await fetch("/samples/"+encodeURIComponent(n));$("crop").value=cropFromName(n);setFile(new File([await r.blob()],n,{type:"image/jpeg"}));};
       $("sampleList").appendChild(b);
     });
   }catch(e){}
@@ -133,16 +151,20 @@ async function loadSamples(){
 
 $("scanBtn").onclick=async()=>{
   if(!file) return;
+  const crop=$("crop").value, hi=lang==="hi";
+  if(!crop){showMsg(T[lang].needCrop); $("crop").focus(); return;}
   const b=$("scanBtn"); b.disabled=true; b.innerHTML=`<i class="spin"></i>${T[lang].scanning}`;
+  showMsg(""); $("resultCard").classList.add("hidden"); last=null;
   try{
-    const fd=new FormData(); fd.append("image",file);
+    const fd=new FormData(); fd.append("image",file); fd.append("crop",crop);
     const r=await fetch("/api/predict",{method:"POST",body:fd});
     const j=await r.json();
     if(!r.ok) throw new Error(j.error||T[lang].err);
-    if(j.not_leaf) throw new Error(T[lang].notLeaf);
-    last=j; render(j); loadHistory();
-    $("resultCard").scrollIntoView({behavior:"smooth"});
-  }catch(e){alert(e.message||T[lang].err)}
+    if(j.unsupported) showMsg(T[lang].unsupported(j.crops.map(c=>hi?c.hi:c.en).join(", ")));
+    else if(j.not_leaf) showMsg(T[lang].notLeaf);
+    else if(j.wrong_crop) showMsg(T[lang].wrongCrop(hi?j.crop_hi:j.crop, hi?j.looks_like_hi:j.looks_like));
+    else{ last=j; render(j); loadHistory(); $("resultCard").scrollIntoView({behavior:"smooth"}); }
+  }catch(e){showMsg(e.message||T[lang].err)}
   b.disabled=false; b.innerHTML=`<span data-t="scan">${T[lang].scan}</span>`;
 };
 
@@ -187,7 +209,7 @@ applyLang(); loadHistory(); loadSamples().then(async()=>{
   // ?sample=Tomato_Late_blight.jpg loads a sample and scans it (demo backup link)
   const s=new URLSearchParams(location.search).get("sample"); if(!s) return;
   const r=await fetch("/samples/"+encodeURIComponent(s)); if(!r.ok) return;
-  setFile(new File([await r.blob()],s,{type:"image/jpeg"})); $("scanBtn").click();
+  $("crop").value=cropFromName(s); setFile(new File([await r.blob()],s,{type:"image/jpeg"})); $("scanBtn").click();
 });
 </script>
 </body>
