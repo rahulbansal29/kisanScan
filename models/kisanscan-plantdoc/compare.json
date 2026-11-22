@@ -1,0 +1,52 @@
+{
+  "field_test_photos": 225,
+  "base": {
+    "field_acc": 0.3111,
+    "field_acc_crop_chosen": 0.5956
+  },
+  "new": {
+    "field_acc": 0.5911,
+    "field_acc_crop_chosen": 0.7733
+  },
+  "combined": {
+    "field_acc": 0.4578,
+    "field_acc_crop_chosen": 0.7156
+  },
+  "samples": {
+    "Apple_Apple_scab.jpg": {
+      "base": "Apple Scab 100%",
+      "new": "Apple Scab 100%",
+      "combined": "Apple Scab 100%"
+    },
+    "Corn_maize_Common_rust.jpg": {
+      "base": "Maize Common Rust 100%",
+      "new": "Maize Common Rust 99%",
+      "combined": "Maize Common Rust 100%"
+    },
+    "Grape_Black_rot.jpg": {
+      "base": "Grape Black Rot 94%",
+      "new": "Healthy Grape 44%",
+      "combined": "Grape Black Rot 91%"
+    },
+    "Potato_Early_blight.jpg": {
+      "base": "Potato Early Blight 100%",
+      "new": "Potato Early Blight 95%",
+      "combined": "Potato Early Blight 97%"
+    },
+    "Tomato_healthy.jpg": {
+      "base": "Healthy Tomato 100%",
+      "new": "Healthy Tomato 94%",
+      "combined": "Healthy Tomato 97%"
+    },
+    "Tomato_Late_blight.jpg": {
+      "base": "Tomato Late Blight 99%",
+      "new": "Tomato Leaf Mold 33%",
+      "combined": "Tomato Late Blight 84%"
+    },
+    "Tomato_Tomato_Yellow_Leaf_Curl_Virus.jpg": {
+      "base": "Tomato Yellow Leaf Curl Virus 93%",
+      "new": "Healthy Tomato 32%",
+      "combined": "Tomato Yellow Leaf Curl Virus 70%"
+    }
+  }
+}

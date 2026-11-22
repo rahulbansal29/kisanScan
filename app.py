@@ -15,7 +15,12 @@ from transformers import AutoModelForImageClassification, MobileNetV2ImageProces
 
 from diseases import CROPS, DISEASES
 
-MODEL_ID = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
+BASE_MODEL = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
+# Our copy fine-tuned on real field photos (training/finetune.py). The app averages it with the
+# base model: base is best on clean photos, fine-tuned on field photos; together they scored
+# 71.6% vs 59.6% (base alone) on PlantDoc field test photos with the crop chosen, and keep all
+# demo samples right (see models/kisanscan-plantdoc/compare.json).
+FINETUNED = Path(__file__).with_name("models") / "kisanscan-plantdoc"
 LOW_CONFIDENCE = 0.50  # below this we ask the farmer to retake the photo
 MIN_LEAF_SHARE = 0.08  # real leaf photos score 0.2-0.6; noise / non-plant photos ~0
 MIN_CROP_SHARE = 0.10  # chosen crop gets <0.06 on wrong-crop samples, >0.8 on right ones; below this, ask to check the crop
@@ -25,9 +30,11 @@ app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB upload limit
 
 print("Loading AI model (first run downloads ~10 MB)...")
-processor = MobileNetV2ImageProcessor.from_pretrained(MODEL_ID)
-model = AutoModelForImageClassification.from_pretrained(MODEL_ID).eval()
-print("Model ready.")
+processor = MobileNetV2ImageProcessor.from_pretrained(BASE_MODEL)
+models = [AutoModelForImageClassification.from_pretrained(BASE_MODEL).eval()]
+if (FINETUNED / "config.json").exists():
+    models.append(AutoModelForImageClassification.from_pretrained(FINETUNED).eval())
+print(f"Model ready ({'base + field-photo fine-tuned' if len(models) == 2 else 'base PlantVillage model only'}).")
 
 
 def db():
@@ -50,7 +57,7 @@ def predict(image: Image.Image, crop: str | None = None):
     considered; also returns how much of the model's belief fell on that crop (crop_share)."""
     inputs = processor(images=image.convert("RGB"), return_tensors="pt")
     with torch.no_grad():
-        probs = model(**inputs).logits.softmax(-1)[0]
+        probs = torch.stack([m(**inputs).logits.softmax(-1)[0] for m in models]).mean(0)
     crop_share = 1.0
     if crop:
         mask = torch.tensor([DISEASES[i]["crop"] == crop for i in range(len(probs))])

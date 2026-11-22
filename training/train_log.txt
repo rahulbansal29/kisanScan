@@ -1,0 +1,26 @@
+[transformers] `MobileNetV2ImageProcessor` requires torchvision (not installed); falling back to `MobileNetV2ImageProcessorPil` for backward compatibility. Install torchvision to use the default backend, or import `MobileNetV2ImageProcessorPil` directly to silence this warning.
+Loading weights:   0%|          | 0/314 [00:00<?, ?it/s]Loading weights: 100%|██████████| 314/314 [00:00<00:00, 9368.61it/s]
+train 1986  val 350  test 225  (skipped 0 broken train files, 11 test photos also in train)
+BASE model on field photos: 31.1% (with crop chosen: 59.6%)
+epoch 0  val 26.9%
+epoch 1  loss 3.600  train 20.7%  val 36.0%  (439s)
+epoch 2  loss 3.005  train 32.5%  val 42.9%  (1131s)
+epoch 3  loss 2.754  train 40.2%  val 49.7%  (1389s)
+epoch 4  loss 2.637  train 45.0%  val 51.1%  (1641s)
+epoch 5  loss 2.458  train 50.1%  val 52.0%  (1892s)
+epoch 6  loss 2.407  train 53.1%  val 56.0%  (2143s)
+epoch 7  loss 2.332  train 55.6%  val 55.1%  (2392s)
+epoch 8  loss 2.254  train 58.7%  val 56.9%  (2540s)
+epoch 9  loss 2.210  train 58.4%  val 58.0%  (2774s)
+epoch 10  loss 2.207  train 59.9%  val 57.7%  (3100s)
+NEW model on field photos: 59.1% (with crop chosen: 77.3%)
+  sample Apple_Apple_scab.jpg -> Apple Scab 100%
+  sample Corn_maize_Common_rust.jpg -> Maize Common Rust 99%
+  sample Grape_Black_rot.jpg -> Squash Powdery Mildew 59%
+  sample Potato_Early_blight.jpg -> Potato Early Blight 85%
+  sample Tomato_healthy.jpg -> Healthy Tomato 85%
+  sample Tomato_Late_blight.jpg -> Squash Powdery Mildew 55%
+  sample Tomato_Tomato_Yellow_Leaf_Curl_Virus.jpg -> Healthy Tomato 17%
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  6.45it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  6.00it/s]
+Saved to C:\Users\RAHUL BANSAL\Desktop\unleash\kisanscan\models\kisanscan-plantdoc  (51.8 min)
+EXIT 0

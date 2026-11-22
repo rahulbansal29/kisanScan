@@ -1,0 +1,84 @@
+{
+  "dataset": "PlantDoc (real field photos), github.com/pratikkayal/PlantDoc-Dataset, CC-BY-4.0",
+  "train": 1986,
+  "val": 350,
+  "test": 225,
+  "test_dupes_removed": 11,
+  "base_test_acc": 0.3111,
+  "base_test_acc_crop_chosen": 0.5956,
+  "new_test_acc": 0.5911,
+  "new_test_acc_crop_chosen": 0.7733,
+  "best_val": 0.58,
+  "history": [
+    {
+      "epoch": 1,
+      "loss": 3.6001,
+      "train": 0.2075,
+      "val": 0.36
+    },
+    {
+      "epoch": 2,
+      "loss": 3.0049,
+      "train": 0.3248,
+      "val": 0.4286
+    },
+    {
+      "epoch": 3,
+      "loss": 2.7542,
+      "train": 0.4023,
+      "val": 0.4971
+    },
+    {
+      "epoch": 4,
+      "loss": 2.6367,
+      "train": 0.4496,
+      "val": 0.5114
+    },
+    {
+      "epoch": 5,
+      "loss": 2.4582,
+      "train": 0.501,
+      "val": 0.52
+    },
+    {
+      "epoch": 6,
+      "loss": 2.4073,
+      "train": 0.5307,
+      "val": 0.56
+    },
+    {
+      "epoch": 7,
+      "loss": 2.332,
+      "train": 0.5564,
+      "val": 0.5514
+    },
+    {
+      "epoch": 8,
+      "loss": 2.2536,
+      "train": 0.5866,
+      "val": 0.5686
+    },
+    {
+      "epoch": 9,
+      "loss": 2.2095,
+      "train": 0.5841,
+      "val": 0.58
+    },
+    {
+      "epoch": 10,
+      "loss": 2.2071,
+      "train": 0.5987,
+      "val": 0.5771
+    }
+  ],
+  "samples": {
+    "Apple_Apple_scab.jpg": "Apple Scab 100%",
+    "Corn_maize_Common_rust.jpg": "Maize Common Rust 99%",
+    "Grape_Black_rot.jpg": "Squash Powdery Mildew 59%",
+    "Potato_Early_blight.jpg": "Potato Early Blight 85%",
+    "Tomato_healthy.jpg": "Healthy Tomato 85%",
+    "Tomato_Late_blight.jpg": "Squash Powdery Mildew 55%",
+    "Tomato_Tomato_Yellow_Leaf_Curl_Virus.jpg": "Healthy Tomato 17%"
+  },
+  "minutes": 51.8
+}
