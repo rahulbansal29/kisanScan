@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+scans.db
+deck/
+screenshots/
+training/
+PRESENTATION_GUIDE.md
+START_KISANSCAN.bat
+.git/
+models/*/results.json
+models/*/compare.json

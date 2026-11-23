@@ -1,3 +1,14 @@
+---
+title: KisanScan
+emoji: 🌿
+colorFrom: green
+colorTo: yellow
+sdk: docker
+app_port: 7860
+pinned: false
+short_description: AI crop doctor for farmers, Hindi and English
+---
+
 # KisanScan – AI Crop Disease Detector
 
 1M1B Green Internship (YIRP) project by Rahul Bansal · Domain: Agriculture
